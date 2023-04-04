@@ -2,6 +2,8 @@ package com.sl.cupid.controller;
 
 
 import com.sl.cupid.boundedContext.member.controller.MemberController;
+import com.sl.cupid.boundedContext.member.entity.Member;
+import com.sl.cupid.boundedContext.member.service.MemberService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.handler;
@@ -30,6 +32,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class MemberControllerTests {
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private MemberService memberService;
 
     @Test
     @DisplayName("회원가입 폼")
@@ -73,6 +78,11 @@ public class MemberControllerTests {
                 .andExpect(handler().handlerType(MemberController.class))
                 .andExpect(handler().methodName("join"))
                 .andExpect(status().is3xxRedirection());
+
+        Member member = memberService.findByUsername("user10").orElse(null);
+        assertThat(member).isNotNull();
+
+
     }
 
 
@@ -136,6 +146,31 @@ public class MemberControllerTests {
                 .andExpect(handler().handlerType(MemberController.class))
                 .andExpect(handler().methodName("join"))
                 .andExpect(status().is4xxClientError());
+    }
+
+
+    @Test
+    @DisplayName("로그인 폼")
+    void t004() throws Exception {
+        // WHEN
+        ResultActions resultActions = mvc
+                .perform(get("/member/login"))
+                .andDo(print());
+
+        // THEN
+        resultActions
+                .andExpect(handler().handlerType(MemberController.class))
+                .andExpect(handler().methodName("showLogin"))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().string(containsString("""
+                        <input type="text" name="username"
+                        """.stripIndent().trim())))
+                .andExpect(content().string(containsString("""
+                        <input type="password" name="password"
+                        """.stripIndent().trim())))
+                .andExpect(content().string(containsString("""
+                        <input type="submit" value="로그인"
+                        """.stripIndent().trim())));
     }
 
 

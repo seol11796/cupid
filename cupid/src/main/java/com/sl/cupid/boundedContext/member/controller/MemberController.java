@@ -43,4 +43,9 @@ public class MemberController {
 
         return "redirect:/";
     }
+
+    @GetMapping("/login")
+    public String showLogin() {
+        return "usr/member/login";
+    }
 }
